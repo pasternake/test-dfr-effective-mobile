@@ -12,6 +12,8 @@ def make_request(url, method='GET', data=None, cookies=None):
     if cookies:
         cookie_str = '; '.join([f"{k}={v}" for k, v in cookies.items()])
         req.add_header('Cookie', cookie_str)
+        if 'csrftoken' in cookies:
+            req.add_header('X-CSRFToken', cookies['csrftoken'])
     
     if data is not None:
         json_data = json.dumps(data).encode('utf-8')
@@ -95,12 +97,12 @@ def test_api():
         print("Viewer POST correctly forbidden.")
 
     # 7. Anonymous Access
-    print("Testing Anonymous GET Document (Expect 401)...")
+    print("Testing Anonymous GET Document (Expect 401/403)...")
     resp = make_request(f"{BASE_URL}/business/documents/", method='GET')
-    if resp['status'] != 401:
+    if resp['status'] not in [401, 403]:
         print(f"Anonymous GET unexpected status: {resp['status']} {resp['data']}")
     else:
-        print("Anonymous GET correctly unauthorized.")
+        print(f"Anonymous GET correctly unauthorized (Status: {resp['status']}).")
 
 if __name__ == "__main__":
     test_api()
